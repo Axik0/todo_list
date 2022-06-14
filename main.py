@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, jsonify, redirect, send_from_directory
+from flask import Flask, render_template, request, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 
@@ -16,6 +16,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donz'
 Bootstrap(app)
 
+# login manager initialisation
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
 ##Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cafes.db'
 # this has to be turned off to prevent flask-sqlalchemy framework from tracking events and save resources
@@ -25,8 +30,9 @@ db = SQLAlchemy(app)
 
 # bi-directional one-to-many relationship
 class User(UserMixin, db.Model):
-    __tablename__ = "users"
+    # Usermixin contains some important methods for our User
     # base class to inherit when we create our db entities
+    __tablename__ = "users"
     user_id = db.Column(db.Integer, primary_key=True)
     u_date = db.Column(db.Date, default=date.today())
     name = db.Column(db.String(20), unique=True, nullable=False)
@@ -50,11 +56,16 @@ class List(db.Model):
 # def before_first_request():
 #     db.create_all()
 
+# callback that returns User object by id
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.query(User).get(int(user_id))
+
 
 class LoginForm(FlaskForm):
-    username = StringField(label='Username', validators=[DataRequired(), Length(min=1, max=30)])
-    password = PasswordField(label='Password', validators=[DataRequired(), Length(min=1, max=30)])
-    submit = SubmitField('Submit')
+    username_f = StringField(label='Username', validators=[DataRequired(), Length(min=1, max=30)])
+    password_f = PasswordField(label='Password', validators=[DataRequired(), Length(min=1, max=30)])
+    submit_f = SubmitField('Submit')
 
 
 
@@ -68,16 +79,20 @@ def login():
     form = LoginForm()
     # check if it's a valid POST request
     if form.validate_on_submit():
-        r_user_name = request.form.get('name_f')
+        r_user_name = request.form.get('username_f')
         r_user_password = request.form.get('location_f')
         try:
             result = db.session.query(User).filter_by(username=r_user_name).first()
             if result.password == r_user_password:
+                login_user(result)
+                flash('You were successfully logged in')
                 return redirect(url_for('index'))
             else:
-                return jsonify(response={"error": "Couldn't find such a user. "})
+                flash('Wrong password')
+                return redirect(url_for('login'))
         except:
-            return jsonify(response={"error": "Couldn't find such a user. "})
+            flash('User with that e-mail not found.')
+            return redirect(url_for('login'))
     else:
         return render_template("login.html", form=form)
 
@@ -89,7 +104,7 @@ def register():
     if form.validate_on_submit():
         new_user = User()
         new_user.name = request.form.get('name_f')
-        new_user.password = request.form.get('location_f')
+        new_user.password = request.form.get('password_f')
         try:
             db.session.add(new_user)
             db.session.commit()
