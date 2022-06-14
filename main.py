@@ -68,12 +68,6 @@ class LoginForm(FlaskForm):
     submit_f = SubmitField('Submit')
 
 
-
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -83,7 +77,7 @@ def login():
         r_user_password = request.form.get('location_f')
         try:
             result = db.session.query(User).filter_by(username=r_user_name).first()
-            if result.password == r_user_password:
+            if check_password_hash(result.password, r_user_password):
                 login_user(result)
                 flash('You were successfully logged in')
                 return redirect(url_for('index'))
@@ -97,23 +91,42 @@ def login():
         return render_template("login.html", form=form)
 
 
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = LoginForm()
-    # check if it's a valid POST request
     if form.validate_on_submit():
-        new_user = User()
-        new_user.name = request.form.get('name_f')
-        new_user.password = request.form.get('password_f')
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            return redirect(url_for('index'))
-        except:
-            return jsonify(response={"error": "Couldn't add user to the database. "})
+        name = request.form.get('name_f')
+        password = request.form.get('password_f')
+        check_presence = db.session.query(User).filter_by(username=name).first()
+        if check_presence:
+            flash('User with that email already exists')
+            return redirect(url_for('register'))
+        else:
+            try:
+                new_user = User()
+                new_user.name = name
+                hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
+                new_user.password = hashed_password
+                db.session.add(new_user)
+                db.session.commit()
+                login_user(new_user)
+                flash('You were successfully logged in')
+                return redirect(url_for('index'))
+            except:
+                flash("Couldn't add the user to the database")
+                return redirect(url_for('register'))
     else:
-        return render_template("login.html", form=form)
+        return render_template("register.html", form=form)
 
+
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 if __name__ == '__main__':
     app.run()
