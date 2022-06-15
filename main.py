@@ -161,7 +161,8 @@ def add_task():
         # this response provides updated data for some task_id
         action_edit_task = request.form.get('action3')
         if action_pre == 'Create':
-            list_name = request.form.get('name')
+            if not list_name:
+                list_name = request.form.get('name')
             print(list_name)
         elif action == 'Add':
             task = request.form.get('task_f')
@@ -174,6 +175,7 @@ def add_task():
             else:
                 flash("Please type a task.", "error")
         elif action == 'Delete' and tdl:
+            tdl = []
             flash("List has been deleted.", "info")
             return redirect(url_for('add_task'))
         elif action == 'Save' and tdl:
@@ -198,7 +200,6 @@ def add_task():
             flash("Nothing to save/delete yet.", "error")
         return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit)
     else:
-        tdl = []
         return render_template("add.html")
 
 
@@ -213,7 +214,7 @@ def show_list():
             flash("List has been deleted.", "info")
         elif action == 'Delete':
             flash("List has been saved.", "info")
-        return render_template("add.html", tdl=tdl, name=list_name)
+        return redirect(url_for('add_task'))
     else:
         # tdl=[['4543434', '0'], ['455', '0'], ['324cd', '1'], ['v ', '2'], ['234v fddfdf', '3']]
         # name = "test"
