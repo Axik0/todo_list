@@ -1,5 +1,3 @@
-#submit_f {background-color : #06d6a0; }
-
 .bi {font-size: 30px; }
 
 body {
@@ -15,3 +13,9 @@ a {
 .cpalette-1 {background-color: #90e0ef;}
 .cpalette-2 {background-color: #00b4d8;}
 .cpalette-3 {background-color: #0077b6;}
+
+
+.submit_f {background-color : #06d6a0; }
+.save_f {}
+.delete_f {}
+.edit_f {}

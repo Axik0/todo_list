@@ -1,0 +1,31 @@
+{% extends 'custombase.html' %}
+
+{% block title %}
+List
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid d-flex flex-row bg-light my-1">
+    <a class="btn btn-outline-primary me-1 active" href="#">User</a>
+    <label class="btn btn-outline-primary me-1 active" >{{ name }}</label>
+</div>
+
+{% for item in tdl %}
+<div class="container-fluid bg-light my-0">
+    <form class="d-flex flex-row" method="post" role="form" novalidate="">
+    <input type="hidden" name="task_id" value="{{ tdl.index(item) }}">
+    <input type="hidden" name="task" value="{{ item[0] }}">
+    <input class="me-2" type="checkbox" name="post_state" checked>
+    <label class="mx-1 form-control {{'cpalette-'+item[1] if item[1]|int >= 0 else ''}}" > {{ item[0] }} </label>
+    </form>
+</div>
+{% endfor %}
+<div class="container-fluid my-1 mx-1">
+      <form class="d-flex" action="" method="post" role="form" novalidate="">
+        <input name="action" class="submit_f btn w-100 btn-outline-success me-1" type="submit" value="Confirm">
+        <input name="action" class="edit_f btn btn-outline-warning me-1" type="submit" value="Edit">
+        <input name="action" class="delete_f btn btn-outline-danger me-1" type="submit" value="Delete">
+      </form>
+</div>
+{{ super() }}
+{% endblock %}

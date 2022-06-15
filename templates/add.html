@@ -1,0 +1,74 @@
+{% extends 'custombase.html' %}
+
+{% block title %}
+New list
+{% endblock %}
+
+{% block content %}
+
+
+{% if task %}
+<!--task edit form (if task is present)-->
+  <div class="container-fluid bg-light my-1">
+      <form class="d-flex" action="" method="post" role="form" novalidate="">
+        <a class="btn btn-outline-primary me-1 active" href="#">UserList2</a>
+        <input type="hidden" name="task_idf3" value="{{ task[0] }}">
+        <div class="form-group ">
+            <select class="form-select me-5" name="priority_f3" >
+              <option {{ 'selected' if task[1][1] == '0' else '' }} value="0">Priority</option>
+              <option {{ 'selected' if task[1][1] == '1' else '' }} value="1">3</option>
+              <option {{ 'selected' if task[1][1] == '2' else '' }} value="2">2</option>
+              <option {{ 'selected' if task[1][1] == '3' else '' }} value="3">1</option>
+            </select>
+        </div>
+        <input name="task_f3" class="task_f form-control mx-1" type="text" value="{{ task[1][0] }}">
+        <input name="action3" class="submit_f btn btn-outline-success me-1" type="submit" value="Confirm">
+      </form>
+  </div>
+{% elif name or tdl %}
+<!--list append form (if present)-->
+  <div class="container-fluid bg-light my-1">
+      <form class="d-flex" action="" method="post" role="form" novalidate="">
+        <a class="btn btn-outline-primary me-1 active" href="#">User</a>
+        <label  class="btn btn-outline-primary me-1 active" > {{ name }} </label>
+        <input name="action" class="save_f btn btn-outline-success me-1" type="submit" value="Save">
+        <input name="action" class="delete_f btn btn-outline-danger me-1" type="submit" value="Delete">
+        <div class="form-group ">
+            <select class="priority_f form-select me-5" name="priority_f" aria-label=".form-select-sm example">
+              <option selected value="0">Priority</option>
+              <option value="1">3</option>
+              <option value="2">2</option>
+              <option value="3">1</option>
+            </select>
+        </div>
+        <input name="task_f" class="task_f form-control mx-1" type="text" placeholder="New task" aria-label="Task">
+        <input name="action" class="submit_f btn btn-outline-success" type="submit" value="Add">
+      </form>
+  </div>
+{% else %}
+<!--list name edit form-->
+  <div class="container-fluid bg-light my-1">
+      <form class="d-flex" action="" method="post" role="form" novalidate="">
+        <a class="btn btn-outline-primary me-1 active" href="#">User</a>
+        <input name="name" class="task_f form-control mx-1" type="text" placeholder="Enter a name to create a new list">
+        <input name="action0" class="submit_f btn btn-outline-success me-1" type="submit" value="Create">
+      </form>
+  </div>
+{% endif %}
+
+<!--list representation (if present)-->
+{% for item in tdl %}
+<div class="container-fluid  bg-light my-0">
+    <form class="d-flex flex-row" method="post" role="form" novalidate="">
+    <input type="hidden" name="task_id" value="{{ tdl.index(item) }}">
+    <input type="hidden" name="task" value="{{ item[0] }}">
+    <input class="me-2" type="checkbox" name="post_state" {{'checked' if item[1] == '-1' else ''}}>
+    <label class="mx-1 form-control {{'cpalette-'+item[1] if item[1]|int >= 0 else ''}}" > {{ item[0] }} </label>
+    <input name="action2" class="edit_f btn btn-outline-warning me-1" type="submit" value="Edit">
+    <input name="action2" class="delete_f btn btn-outline-danger" type="submit" value="Delete">
+    </form>
+</div>
+{% endfor %}
+
+{{ super() }}
+{% endblock %}

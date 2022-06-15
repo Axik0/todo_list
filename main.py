@@ -137,7 +137,7 @@ def index():
 
 # @app.route("/add")
 # def create_list():
-#     return render_template("newlist.html")
+#     return render_template("add.html")
 
 
 class TaskForm(FlaskForm):
@@ -145,30 +145,79 @@ class TaskForm(FlaskForm):
     submit_f = SubmitField('Submit')
 
 tdl = []
+list_name = None
 
 @app.route("/add", methods=['GET', 'POST'])
 def add_task():
-    global tdl
+    global tdl, list_name
+    task_to_edit = None
     if request.method == 'POST':
+        # this response allows us to catch list's name
+        action_pre = request.form.get('action0')
+        # this response happens each time we add a task to the list, save the list or delete that
         action = request.form.get('action')
-        if action == 'Delete' and tdl:
-            flash("Deleted")
-            return redirect(url_for('add_task'))
+        # this response provides task_id to edit
+        action_task = request.form.get('action2')
+        # this response provides updated data for some task_id
+        action_edit_task = request.form.get('action3')
+        if action_pre == 'Create':
+            list_name = request.form.get('name')
+            print(list_name)
         elif action == 'Add':
             task = request.form.get('task_f')
             if task:
                 priority = request.form.get('priority_f')
-                tdl.append([task, priority])
+                if [task, priority] not in tdl:
+                    tdl.append([task, priority])
+                else:
+                    flash("This task already exists.", "error")
             else:
                 flash("Please type a task.", "error")
+        elif action == 'Delete' and tdl:
+            flash("List has been deleted.", "info")
+            return redirect(url_for('add_task'))
+        elif action == 'Save' and tdl:
+            flash(f"List {list_name} has been saved.", "info")
+            print(tdl)
+        elif action_task == 'Edit' and tdl:
+            # the task_id has been received, ready to process, transfer old values to the template
+            task_to_edit_id = int(request.form.get('task_id'))
+            task_to_edit = [task_to_edit_id, tdl[task_to_edit_id]]
+        elif action_edit_task == 'Confirm':
+            # the task has been updated, renew it in the list
+            edited_task_id = int(request.form.get('task_idf3'))
+            updated_task_text = request.form.get('task_f3')
+            updated_task_priority = request.form.get('priority_f3')
+            tdl[edited_task_id] = [updated_task_text, updated_task_priority]
+            flash("Edited", "info")
+            task_to_edit = None
+        elif action_task == 'Delete' and tdl:
+            task_to_delete = int(request.form.get('task_id'))
+            tdl.pop(task_to_delete)
         else:
-            flash("Nothing to delete yet.", "error")
-        return render_template("newlist.html", tdl=tdl)
+            flash("Nothing to save/delete yet.", "error")
+        return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit)
     else:
         tdl = []
-        return render_template("newlist.html")
+        return render_template("add.html")
 
 
+@app.route("/list", methods=['GET', 'POST'])
+def show_list():
+    global tdl, list_name
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'Confirm':
+            pass
+        elif action == 'Edit':
+            flash("List has been deleted.", "info")
+        elif action == 'Delete':
+            flash("List has been saved.", "info")
+        return render_template("add.html", tdl=tdl, name=list_name)
+    else:
+        # tdl=[['4543434', '0'], ['455', '0'], ['324cd', '1'], ['v ', '2'], ['234v fddfdf', '3']]
+        # name = "test"
+        return render_template("list.html", tdl=tdl, name=list_name)
 
 if __name__ == '__main__':
     app.run()
