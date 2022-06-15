@@ -144,12 +144,15 @@ class TaskForm(FlaskForm):
     task_f = StringField(label='Task')
     submit_f = SubmitField('Submit')
 
+tdl = []
+
 @app.route("/add", methods=['GET', 'POST'])
 def add_task():
     if request.method == 'POST':
         task = request.form.get('task_f')
         priority = request.form.get('priority_f')
-        return task+priority
+        tdl.append([task, priority])
+        return render_template("newlist.html", tdl=tdl)
     else:
         return render_template("newlist.html")
 

@@ -5,6 +5,7 @@ Coffee?
 {% endblock %}
 
 {% block content %}
+<!--list append form (if present)-->
   <div class="container-fluid bg-light my-1">
       <form class="d-flex" action="" method="post" role="form" novalidate="">
         <a class="btn btn-outline-primary me-1 active" href="#">UserList2</a>
@@ -17,20 +18,20 @@ Coffee?
             </select>
         </div>
         <input id="task_f" name="task_f" class="form-control mx-1" type="text" placeholder="New task" aria-label="Task">
-        <input id="submit_f" name="submit_f" class="btn btn-outline-success" type="submit" value="Add">
+        <input id="submit_f" name="submit_f" class="btn btn-outline-success me-1" type="submit" value="Add">
+        <a href="#" class="btn btn-outline-danger">Delete</a>
       </form>
   </div>
 
+<!--list representation (if present)-->
+{% for item in tdl %}
 <div class="container-fluid d-flex flex-row bg-light my-1">
-    <input class="me-3" type="checkbox" aria-label="Checkbox for following text input">
-    <label class="form-control" aria-label="Text input with checkbox">Text input with checkbox </label>
-    <a href="#" class="btn btn-outline-warning">Edit</a>
+    <input class="me-3" type="checkbox" {{'checked' if item[1] == '-1' else ''}}>
+    <label class="mx-1 form-control {{'cpalette-'+item[1] if item[1]|int >= 0 else ''}}" > {{ item[0] }} </label>
+    <a href="#" class="btn btn-outline-warning me-1">Edit</a>
     <a href="#" class="btn btn-outline-danger">Delete</a>
 </div>
-
-<div class="input-group mb-3">
-
-</div>
+{% endfor %}
 
 {{ super() }}
 {% endblock %}
