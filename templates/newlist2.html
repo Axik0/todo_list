@@ -1,0 +1,22 @@
+{% extends 'custombase.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+Coffee?
+{% endblock %}
+
+{% block content %}
+<form action="" method="post" class="form" role="form" novalidate="">
+  <input id="csrf_token" name="csrf_token" type="hidden" value="IjlhNDlhOTBjYTQ3MWZkYTAwZWM3OWUzMTVmNGIwYWNkMDVmYmJiYjQi.YqmjPg.4vdp7aNf5GHOZccmQT1JHNS2fVI">
+
+<div class="form-group "><label class="control-label" for="task_f">Task</label>
+
+          <input class="form-control" id="task_f" name="task_f" type="text" value="">
+
+  </div>
+
+    <input class="btn btn-default" id="submit_f" name="submit_f" type="submit" value="Submit">
+</form>
+{{ super() }}
+{% endblock %}
+

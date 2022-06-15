@@ -1,0 +1,36 @@
+{% extends 'custombase.html' %}
+
+{% block title %}
+Coffee?
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid bg-light my-1">
+      <form class="d-flex" action="" method="post" role="form" novalidate="">
+        <a class="btn btn-outline-primary me-1 active" href="#">UserList2</a>
+        <div class="form-group ">
+            <select class="form-select me-4" id="priority_f" name="priority_f" aria-label=".form-select-sm example">
+              <option selected value="0">Priority</option>
+              <option value="1">One</option>
+              <option value="2">Two</option>
+              <option value="3">Three</option>
+            </select>
+        </div>
+        <input id="task_f" name="task_f" class="form-control mx-1" type="text" placeholder="New task" aria-label="Task">
+        <input id="submit_f" name="submit_f" class="btn btn-outline-success" type="submit" value="Add">
+      </form>
+  </div>
+
+<div class="container-fluid d-flex flex-row bg-light my-1">
+    <input class="me-3" type="checkbox" aria-label="Checkbox for following text input">
+    <label class="form-control" aria-label="Text input with checkbox">Text input with checkbox </label>
+    <a href="#" class="btn btn-outline-warning">Edit</a>
+    <a href="#" class="btn btn-outline-danger">Delete</a>
+</div>
+
+<div class="input-group mb-3">
+
+</div>
+
+{{ super() }}
+{% endblock %}

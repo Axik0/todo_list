@@ -6,14 +6,15 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length
 
-from datetime import date
 from flask_bootstrap import Bootstrap
 
-from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
+from flask_login import UserMixin, login_user, logout_user, LoginManager, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from datetime import date
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donz'
+app.config['SECRET_KEY'] = '8BYkEfBA6O6donzz'
 Bootstrap(app)
 
 # login manager initialisation
@@ -50,7 +51,6 @@ class List(db.Model):
 
     author = relationship("User", back_populates="lists")
 
-# list = {priority_id: task}
 
 # @app.before_first_request
 # def before_first_request():
@@ -127,6 +127,33 @@ def register():
 @app.route("/")
 def index():
     return render_template("index.html")
+
+# @app.route("/create_list")
+# def create_list():
+#     # list = {priority_id: task}?
+#     # list = []
+#     # list.append(task)
+#     return render_template("register.html", form=form)
+
+# @app.route("/add")
+# def create_list():
+#     return render_template("newlist.html")
+
+
+class TaskForm(FlaskForm):
+    task_f = StringField(label='Task')
+    submit_f = SubmitField('Submit')
+
+@app.route("/add", methods=['GET', 'POST'])
+def add_task():
+    if request.method == 'POST':
+        task = request.form.get('task_f')
+        priority = request.form.get('priority_f')
+        return task+priority
+    else:
+        return render_template("newlist.html")
+
+
 
 if __name__ == '__main__':
     app.run()
