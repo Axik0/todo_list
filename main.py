@@ -148,12 +148,24 @@ tdl = []
 
 @app.route("/add", methods=['GET', 'POST'])
 def add_task():
+    global tdl
     if request.method == 'POST':
-        task = request.form.get('task_f')
-        priority = request.form.get('priority_f')
-        tdl.append([task, priority])
+        action = request.form.get('action')
+        if action == 'Delete' and tdl:
+            flash("Deleted")
+            return redirect(url_for('add_task'))
+        elif action == 'Add':
+            task = request.form.get('task_f')
+            if task:
+                priority = request.form.get('priority_f')
+                tdl.append([task, priority])
+            else:
+                flash("Please type a task.", "error")
+        else:
+            flash("Nothing to delete yet.", "error")
         return render_template("newlist.html", tdl=tdl)
     else:
+        tdl = []
         return render_template("newlist.html")
 
 

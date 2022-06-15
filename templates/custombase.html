@@ -35,6 +35,14 @@
 {% endblock %}
 
 {% block content %}
+<!--flask's flashing messages display-->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container-fluid {{ 'bg-info' if messages[-1][0] == 'error' else 'bg-light' }} my-1">
+      <p class='flashes'>{{ messages[-1][1] }}</p>
+    </div>
+  {% endif %}
+{% endwith %}
 <!-- Bootstrap example footer -->
 <div class="container">
   <footer class="py-3 my-4">

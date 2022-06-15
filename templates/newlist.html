@@ -1,25 +1,26 @@
 {% extends 'custombase.html' %}
 
 {% block title %}
-Coffee?
+New list
 {% endblock %}
 
 {% block content %}
+
 <!--list append form (if present)-->
   <div class="container-fluid bg-light my-1">
       <form class="d-flex" action="" method="post" role="form" novalidate="">
         <a class="btn btn-outline-primary me-1 active" href="#">UserList2</a>
         <div class="form-group ">
-            <select class="form-select me-4" id="priority_f" name="priority_f" aria-label=".form-select-sm example">
+            <select class="form-select me-5" id="priority_f" name="priority_f" aria-label=".form-select-sm example">
               <option selected value="0">Priority</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
+              <option value="1">3</option>
+              <option value="2">2</option>
+              <option value="3">1</option>
             </select>
         </div>
         <input id="task_f" name="task_f" class="form-control mx-1" type="text" placeholder="New task" aria-label="Task">
-        <input id="submit_f" name="submit_f" class="btn btn-outline-success me-1" type="submit" value="Add">
-        <a href="#" class="btn btn-outline-danger">Delete</a>
+        <input id="submit_f" name="action" class="btn btn-outline-success me-1" type="submit" value="Add">
+        <input id="delete_f" name="action" class="btn btn-outline-danger" type="submit" value="Delete">
       </form>
   </div>
 
