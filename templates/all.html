@@ -1,0 +1,20 @@
+{% extends 'custombase.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}
+All user's lists
+{% endblock %}
+
+{% block content %}
+{% for list in lists %}
+<ul class="dropdown-menu position-static d-grid gap-1 p-2 rounded-3 mx-0 my-2 shadow w-220px">
+    <li><a class="dropdown-item rounded-2" href="{{ url_for('show_list')}}/{{list[0]}}">{{ list[1] }}</a></li>
+        <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item rounded-2 {{'cpalette-'+list[2][0][1]|string if list[2][0][1]|int >= 0 else ''}}" href="#">{{ list[2][0][0] }}</a></li>
+    <li><a class="dropdown-item rounded-2 {{'cpalette-'+list[2][1][1]|string if list[2][1][1]|int >= 0 else ''}}" href="#">{{ list[2][1][0] }}</a></li>
+    <li><a class="dropdown-item rounded-2 {{'cpalette-'+list[2][2][1]|string if list[2][2][1]|int >= 0 else ''}}" href="#">{{ list[2][2][0] }}</a></li>
+  </ul>
+{% endfor %}
+{{ super() }}
+{% endblock %}
+

@@ -128,21 +128,6 @@ def register():
 def index():
     return render_template("index.html")
 
-# @app.route("/create_list")
-# def create_list():
-#     # list = {priority_id: task}?
-#     # list = []
-#     # list.append(task)
-#     return render_template("register.html", form=form)
-
-# @app.route("/add")
-# def create_list():
-#     return render_template("add.html")
-
-
-class TaskForm(FlaskForm):
-    task_f = StringField(label='Task')
-    submit_f = SubmitField('Submit')
 
 tdl = []
 list_name = None
@@ -215,18 +200,21 @@ def add_task():
 
 
 @app.route("/list", methods=['GET', 'POST'])
-def show_list():
+@app.route("/lists/<int:list_id>")
+def show_list(list_id=None):
     global tdl, list_name
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'Confirm':
             # save to database
+            print(list_id)
             flash("Your list has been saved to the database.", "info")
             return redirect(url_for('index'))
         elif action == 'Edit':
             flash("Edit your list again.", "info")
             return redirect(url_for('add_task'))
         elif action == 'Delete':
+            print(list_id)
             flash("Your list has been deleted.", "info")
             # check database, delete if present
             return redirect(url_for('index'))
@@ -236,6 +224,14 @@ def show_list():
         else:
             flash("Nothing here yet, first create a list. ", "error")
             return redirect(url_for('add_task'))
+
+
+user_lists = [['id1', 'listname1', [[1,2],[2,1],[3,3]]],  ['id2', 'listname2', [[1,3],[2,1],[3,3]]]]
+
+@app.route("/all")
+def all():
+    return render_template("all.html", lists=user_lists)
+
 
 if __name__ == '__main__':
     app.run()
