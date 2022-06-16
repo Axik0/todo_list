@@ -196,15 +196,13 @@ def add_task():
 
         # delete draft
         elif action == 'Delete' and tdl:
-            tdl = []
-            list_name = None
+            list_name, tdl = None, []
             flash("List has been deleted.", "info")
             return redirect(url_for('add_task'))
         # show draft again before saving to the database
         elif action == 'Save' and tdl:
             flash(f"List {list_name} has been saved.", "info")
-            print(tdl, list_name)
-            draft = [None, list_name, tdl]
+            draft[1], draft[2] = list_name, tdl
             return redirect(url_for('show_list'))
 
         # edit task handler section
@@ -226,19 +224,18 @@ def add_task():
         else:
             flash("Nothing to save/delete yet.", "error")
         # update the draft with any changes before rendering it
-        draft = [None, list_name, tdl]
+        draft[1], draft[2] = list_name, tdl
         return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename_flag)
     else:
         return render_template("add.html", tdl=tdl, name=list_name)
 
 
 @app.route("/list", methods=['GET', 'POST'])
-@app.route("/lists/<int:list_id>")
+@app.route("/lists/<int:list_id>", methods=['GET', 'POST'])
 @login_required
 def show_list(list_id=None):
     global draft
-    list_name, tdl = draft[1], draft[2]
-    print(list_id)
+    # print(list_id)
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'Confirm':
@@ -256,7 +253,7 @@ def show_list(list_id=None):
                     flash("Your list has been saved to the database.", "info")
                 except:
                     flash("List with this name already exists in the database, please rename.", "error")
-            return redirect(url_for('index'))
+            return redirect(url_for('get_all'))
         elif action == 'Edit':
             flash("Edit your list again.", "info")
             return redirect(url_for('add_task'))
@@ -266,13 +263,14 @@ def show_list(list_id=None):
                 db.session.query(List).filter_by(list_id=draft[0]).delete()
                 db.session.commit()
                 flash("Your list has been deleted from the database.", "info")
+                draft = [None, None, []]
             else:
                 draft = [None, None, []]
                 flash("Your draft has been deleted.", "info")
             return redirect(url_for('get_all'))
     else:
-        if tdl and list_name:
-            return render_template("list.html", tdl=tdl, name=list_name)
+        if list_id is None:
+            return render_template("list.html", tdl=draft[2], name=draft[1])
         elif list_id:
             query = db.session.query(List).filter_by(author=current_user, list_id=list_id).first()
             draft = [query.list_id, query.list_name, query.body]
