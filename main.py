@@ -267,7 +267,7 @@ def show_list(list_id=None):
 
 @app.route("/all")
 @login_required
-def all():
+def get_all():
     query = db.session.query(List).filter_by(author=current_user).all()
     user_lists = [[lst.list_id, lst.list_name, lst.body] for lst in query]
     # user_lists = [['id1', 'listname1', [[1, 2], [2, 1], [3, 3]]], ['id2', 'listname2', [[1, 3], [2, 1], [3, 3]]]]

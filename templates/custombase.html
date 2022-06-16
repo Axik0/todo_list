@@ -27,7 +27,7 @@
       </ul>
       {% if current_user.is_authenticated %}
       <div class="col-md-3 text-end">
-        <a href="{{ url_for('all') }}" class="btn btn-outline-primary me-2">My lists</a>
+        <a href="{{ url_for('get_all') }}" class="btn btn-outline-primary me-2">My lists</a>
         <a href="{{ url_for('logout') }}" class="btn btn-primary">Log out</a>
       </div>
       {% else %}
