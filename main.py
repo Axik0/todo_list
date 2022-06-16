@@ -54,7 +54,7 @@ class List(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     l_date = db.Column(db.Date, default=date.today())
 
-    list_name = db.Column(db.String(200), nullable=False)
+    list_name = db.Column(db.String(200), unique=True, nullable=False)
     body = db.Column(db.PickleType, nullable=False)
 
     author = db.Column(db.String(250), nullable=False)
@@ -143,14 +143,19 @@ def index():
     return render_template("index.html")
 
 
-draft = [None, []]
+draft = [None, None, []]
+
+
+def draft_drop():
+    global draft
+    draft = [None, None, []]
 
 
 @app.route("/add", methods=['GET', 'POST'])
 @login_required
 def add_task():
     global draft
-    list_name, tdl = draft
+    list_name, tdl = draft[1], draft[2]
     task_to_edit, rename_flag = None, None
 
     if request.method == 'POST':
@@ -199,7 +204,7 @@ def add_task():
         elif action == 'Save' and tdl:
             flash(f"List {list_name} has been saved.", "info")
             print(tdl, list_name)
-            draft = [list_name, tdl]
+            draft = [None, list_name, tdl]
             return redirect(url_for('show_list'))
 
         # edit task handler section
@@ -221,7 +226,7 @@ def add_task():
         else:
             flash("Nothing to save/delete yet.", "error")
         # update the draft with any changes before rendering it
-        draft = [list_name, tdl]
+        draft = [None, list_name, tdl]
         return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename_flag)
     else:
         return render_template("add.html", tdl=tdl, name=list_name)
@@ -232,31 +237,46 @@ def add_task():
 @login_required
 def show_list(list_id=None):
     global draft
-    list_name, tdl = draft[0], draft[1]
+    list_name, tdl = draft[1], draft[2]
+    print(list_id)
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'Confirm':
             # save to database
-            print(list_id)
-            new_list = List(list_name=draft[0], author=current_user, body=draft[1])
-            print(new_list)
-            db.session.add(new_list)
-            db.session.commit()
-            print(db.session.query(List).all())
-            flash("Your list has been saved to the database.", "info")
+            if draft[0]:
+                list_to_update = db.session.query(List).get(draft[0])
+                list_to_update.list_name, list_to_update.body = draft[1], draft[2]
+                db.session.commit()
+                flash("Your list has been updated in the database.", "info")
+            else:
+                try:
+                    new_list = List(list_name=draft[1], author=current_user, body=draft[2])
+                    db.session.add(new_list)
+                    db.session.commit()
+                    flash("Your list has been saved to the database.", "info")
+                except:
+                    flash("List with this name already exists in the database, please rename.", "error")
             return redirect(url_for('index'))
         elif action == 'Edit':
             flash("Edit your list again.", "info")
             return redirect(url_for('add_task'))
         elif action == 'Delete':
-            print(list_id)
-
-            flash("Your list has been deleted.", "info")
-            # check database, delete if present
-            return redirect(url_for('index'))
+            if draft[0]:
+                # check database, delete if present
+                db.session.query(List).filter_by(list_id=draft[0]).delete()
+                db.session.commit()
+                flash("Your list has been deleted from the database.", "info")
+            else:
+                draft = [None, None, []]
+                flash("Your draft has been deleted.", "info")
+            return redirect(url_for('get_all'))
     else:
         if tdl and list_name:
             return render_template("list.html", tdl=tdl, name=list_name)
+        elif list_id:
+            query = db.session.query(List).filter_by(author=current_user, list_id=list_id).first()
+            draft = [query.list_id, query.list_name, query.body]
+            return redirect(url_for('show_list'))
         else:
             flash("Nothing here yet, first create a list. ", "error")
             return redirect(url_for('add_task'))

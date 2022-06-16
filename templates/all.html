@@ -8,7 +8,7 @@ All user {{ current_user.user_name }} lists
 {% block content %}
 {% for list in lists %}
 <ul class="dropdown-menu position-static d-grid gap-1 p-2 rounded-3 mx-0 my-2 shadow w-220px">
-    <li><a class="dropdown-item rounded-2" href="{{ url_for('show_list')}}/{{list[0]}}">{{ list[1] }}</a></li>
+    <li><a class="dropdown-item rounded-2" href="lists/{{list[0]}}"> {{ list[1] }}</a></li>
         <li><hr class="dropdown-divider"></li>
 <!--    list up to 3 elements from each list (if they do exist)-->
     {% for i in range(3) if list[2][i]%}
