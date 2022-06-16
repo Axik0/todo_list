@@ -1,13 +1,13 @@
 {% extends 'custombase.html' %}
 
 {% block title %}
-List
+Task list: {{ name }}
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid d-flex flex-row bg-light my-1">
     <a class="btn btn-outline-primary me-1 active" href="#">User</a>
-    <label class="btn btn-outline-primary me-1 active" >{{ name }}</label>
+    <label class="btn btn-outline-light me-1 active" >{{ name }}</label>
 </div>
 
 {% for item in tdl %}

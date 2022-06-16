@@ -151,6 +151,7 @@ list_name = None
 def add_task():
     global tdl, list_name
     task_to_edit = None
+    rename = None
     if request.method == 'POST':
         # this response allows us to catch list's name
         action_pre = request.form.get('action0')
@@ -160,10 +161,18 @@ def add_task():
         action_task = request.form.get('action2')
         # this response provides updated data for some task_id
         action_edit_task = request.form.get('action3')
+        # this response brings new name for the list of tasks
+        action_edit_name = request.form.get('action4')
         if action_pre == 'Create':
             if not list_name:
                 list_name = request.form.get('name')
             print(list_name)
+        elif action == 'Rename':
+            flash("Rename", "info")
+            rename = True
+        elif action_edit_name == 'Confirm':
+            flash(f"List {list_name} has been renamed.", "info")
+            list_name = request.form.get('new_list_name')
         elif action == 'Add':
             task = request.form.get('task_f')
             if task:
@@ -176,11 +185,13 @@ def add_task():
                 flash("Please type a task.", "error")
         elif action == 'Delete' and tdl:
             tdl = []
+            list_name = None
             flash("List has been deleted.", "info")
             return redirect(url_for('add_task'))
         elif action == 'Save' and tdl:
             flash(f"List {list_name} has been saved.", "info")
-            print(tdl)
+            print(tdl, list_name)
+            return redirect(url_for('show_list'))
         elif action_task == 'Edit' and tdl:
             # the task_id has been received, ready to process, transfer old values to the template
             task_to_edit_id = int(request.form.get('task_id'))
@@ -198,9 +209,9 @@ def add_task():
             tdl.pop(task_to_delete)
         else:
             flash("Nothing to save/delete yet.", "error")
-        return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit)
+        return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename)
     else:
-        return render_template("add.html")
+        return render_template("add.html", tdl=tdl, name=list_name)
 
 
 @app.route("/list", methods=['GET', 'POST'])
@@ -209,16 +220,22 @@ def show_list():
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'Confirm':
-            pass
+            # save to database
+            flash("Your list has been saved to the database.", "info")
+            return redirect(url_for('index'))
         elif action == 'Edit':
-            flash("List has been deleted.", "info")
+            flash("Edit your list again.", "info")
+            return redirect(url_for('add_task'))
         elif action == 'Delete':
-            flash("List has been saved.", "info")
-        return redirect(url_for('add_task'))
+            flash("Your list has been deleted.", "info")
+            # check database, delete if present
+            return redirect(url_for('index'))
     else:
-        # tdl=[['4543434', '0'], ['455', '0'], ['324cd', '1'], ['v ', '2'], ['234v fddfdf', '3']]
-        # name = "test"
-        return render_template("list.html", tdl=tdl, name=list_name)
+        if tdl and list_name:
+            return render_template("list.html", tdl=tdl, name=list_name)
+        else:
+            flash("Nothing here yet, first create a list. ", "error")
+            return redirect(url_for('add_task'))
 
 if __name__ == '__main__':
     app.run()
