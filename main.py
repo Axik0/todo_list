@@ -97,6 +97,7 @@ def login():
 
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
@@ -136,7 +137,9 @@ def index():
 
 draft = [None, []]
 
+
 @app.route("/add", methods=['GET', 'POST'])
+@login_required
 def add_task():
     global draft
     list_name, tdl = draft
@@ -218,6 +221,7 @@ def add_task():
 
 @app.route("/list", methods=['GET', 'POST'])
 @app.route("/lists/<int:list_id>")
+@login_required
 def show_list(list_id=None):
     global draft
     tdl, list_name = draft[0], draft[1]
@@ -249,6 +253,7 @@ def show_list(list_id=None):
 
 
 @app.route("/all")
+@login_required
 def all():
     user_lists = [['id1', 'listname1', [[1, 2], [2, 1], [3, 3]]], ['id2', 'listname2', [[1, 3], [2, 1], [3, 3]]]]
     return render_template("all.html", lists=user_lists)
