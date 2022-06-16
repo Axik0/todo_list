@@ -21,13 +21,13 @@ Bootstrap(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-
 ##Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cafes.db'
 # this has to be turned off to prevent flask-sqlalchemy framework from tracking events and save resources
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # I have to create this key to use CSRF protection for form
 db = SQLAlchemy(app)
+
 
 # bi-directional one-to-many relationship
 class User(UserMixin, db.Model):
@@ -96,6 +96,7 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = LoginForm()
@@ -129,14 +130,14 @@ def index():
     return render_template("index.html")
 
 
-tdl = []
-list_name = None
+draft = [[], None]
 
 @app.route("/add", methods=['GET', 'POST'])
 def add_task():
-    global tdl, list_name
+    global draft
+    tdl, list_name = draft
     task_to_edit = None
-    rename = None
+    rename_flag = None
     if request.method == 'POST':
         # this response allows us to catch list's name
         action_pre = request.form.get('action0')
@@ -148,16 +149,20 @@ def add_task():
         action_edit_task = request.form.get('action3')
         # this response brings new name for the list of tasks
         action_edit_name = request.form.get('action4')
+
+        # name the list before starting to fill in tasks
         if action_pre == 'Create':
-            if not list_name:
-                list_name = request.form.get('name')
-            print(list_name)
+            list_name = request.form.get('name')
+
+        # list rename handler section
         elif action == 'Rename':
             flash("Rename", "info")
-            rename = True
+            rename_flag = True
         elif action_edit_name == 'Confirm':
             flash(f"List {list_name} has been renamed.", "info")
             list_name = request.form.get('new_list_name')
+
+        # populates newly created list
         elif action == 'Add':
             task = request.form.get('task_f')
             if task:
@@ -168,15 +173,21 @@ def add_task():
                     flash("This task already exists.", "error")
             else:
                 flash("Please type a task.", "error")
+
+        # delete draft
         elif action == 'Delete' and tdl:
             tdl = []
             list_name = None
             flash("List has been deleted.", "info")
             return redirect(url_for('add_task'))
+        # show draft again before saving to the database
         elif action == 'Save' and tdl:
             flash(f"List {list_name} has been saved.", "info")
             print(tdl, list_name)
+            draft = [tdl, list_name]
             return redirect(url_for('show_list'))
+
+        # edit task handler section
         elif action_task == 'Edit' and tdl:
             # the task_id has been received, ready to process, transfer old values to the template
             task_to_edit_id = int(request.form.get('task_id'))
@@ -194,7 +205,9 @@ def add_task():
             tdl.pop(task_to_delete)
         else:
             flash("Nothing to save/delete yet.", "error")
-        return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename)
+        # update the draft with any changes before rendering it
+        draft = [tdl, list_name]
+        return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename_flag)
     else:
         return render_template("add.html", tdl=tdl, name=list_name)
 
@@ -202,7 +215,8 @@ def add_task():
 @app.route("/list", methods=['GET', 'POST'])
 @app.route("/lists/<int:list_id>")
 def show_list(list_id=None):
-    global tdl, list_name
+    global draft
+    tdl, list_name = draft[0], draft[1]
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'Confirm':
@@ -226,7 +240,8 @@ def show_list(list_id=None):
             return redirect(url_for('add_task'))
 
 
-user_lists = [['id1', 'listname1', [[1,2],[2,1],[3,3]]],  ['id2', 'listname2', [[1,3],[2,1],[3,3]]]]
+user_lists = [['id1', 'listname1', [[1, 2], [2, 1], [3, 3]]], ['id2', 'listname2', [[1, 3], [2, 1], [3, 3]]]]
+
 
 @app.route("/all")
 def all():
