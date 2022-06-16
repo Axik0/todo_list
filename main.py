@@ -140,7 +140,10 @@ def register():
 
 @app.route("/")
 def index():
+    global draft
+    draft = [None, None, []]
     return render_template("index.html")
+
 
 
 draft = [None, None, []]
@@ -241,15 +244,19 @@ def show_list(list_id=None):
         if action == 'Confirm':
             # save to database
             if draft[0]:
+                # if it was an item from the database, get that outta there and update just its fields
                 list_to_update = db.session.query(List).get(draft[0])
                 list_to_update.list_name, list_to_update.body = draft[1], draft[2]
                 db.session.commit()
                 flash("Your list has been updated in the database.", "info")
             else:
+                # insert completely new list into the database
+                # I suppose that same list_name problem is eliminated at the database level and raises an exception
                 try:
                     new_list = List(list_name=draft[1], author=current_user, body=draft[2])
                     db.session.add(new_list)
                     db.session.commit()
+                    draft = [None, None, []]
                     flash("Your list has been saved to the database.", "info")
                 except:
                     flash("List with this name already exists in the database, please rename.", "error")
@@ -260,18 +267,24 @@ def show_list(list_id=None):
         elif action == 'Delete':
             if draft[0]:
                 # check database, delete if present
-                db.session.query(List).filter_by(list_id=draft[0]).delete()
-                db.session.commit()
-                flash("Your list has been deleted from the database.", "info")
-                draft = [None, None, []]
+                try:
+                    db.session.query(List).filter_by(list_id=draft[0]).delete()
+                    db.session.commit()
+                    flash("Your list has been deleted from the database.", "info")
+                    draft = [None, None, []]
+                except:
+                    flash("Couldn't find or delete this list, something's wrong.", "error")
             else:
+                # just flush the draft
                 draft = [None, None, []]
                 flash("Your draft has been deleted.", "info")
             return redirect(url_for('get_all'))
     else:
         if list_id is None:
+            # this covers case of a new list, created from scratch
             return render_template("list.html", tdl=draft[2], name=draft[1])
         elif list_id:
+            # when we open a list from database with an exact id
             query = db.session.query(List).filter_by(author=current_user, list_id=list_id).first()
             draft = [query.list_id, query.list_name, query.body]
             return redirect(url_for('show_list'))
@@ -281,11 +294,11 @@ def show_list(list_id=None):
 
 
 
-
-
 @app.route("/all")
 @login_required
 def get_all():
+    global draft
+    draft = [None, None, []]
     query = db.session.query(List).filter_by(author=current_user).all()
     user_lists = [[lst.list_id, lst.list_name, lst.body] for lst in query]
     # user_lists = [['id1', 'listname1', [[1, 2], [2, 1], [3, 3]]], ['id2', 'listname2', [[1, 3], [2, 1], [3, 3]]]]

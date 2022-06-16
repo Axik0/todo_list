@@ -5,6 +5,53 @@ Coffee?
 {% endblock %}
 
 {% block content %}
+{% if not current_user.is_authenticated %}
+<div class="container px-4 py-5" id="hanging-icons">
+    <h2 class="pb-2 border-bottom">Spend some time to help the future self!</h2>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+      <div class="col d-flex align-items-start">
+        <div class="icon-square bg-light text-dark d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3">
+          <i class="bi bg-light bi-stars"></i>
+        </div>
+        <div>
+          <h2>Register</h2>
+          <p>now and get full feature access to your own secure storage. Registration procedure is simple, you're just couple of clicks away from the treasure chest!  </p>
+        </div>
+      </div>
+      <div class="col d-flex align-items-start">
+        <div class="icon-square bg-light text-dark d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+        <div>
+          <h2>Create</h2>
+          <p>as many todo-lists as your want and use them as you wish. Manage your time and get a grip on your life with the one of our best products ever made. </p>
+          <a href="#" class="btn btn-primary">
+            Primary button
+          </a>
+        </div>
+      </div>
+      <div class="col d-flex align-items-start">
+        <div class="icon-square bg-light text-dark d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3">
+          <i class="bi bi-emoji-heart-eyes"></i>
+        </div>
+        <div>
+          <h2>Enjoy</h2>
+          <p>the process of tasking and relieve your stress by making up amazing ideas here, don't just go and clash with reality and randoms on the city streets. </p>
+          <a href="#" class="btn btn-primary">
+            Primary button
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+ {% else %}
+      <div class="container-fluid d-flex justify-content-center">
+          <h1>Already done? Ready for the next challenge?<i class="bi bi-chevron-double-right"></i></h1>
+      </div>
+      <div class="container-fluid d-flex justify-content-center mt-3">
+          <a href="{{ url_for('add_task') }}" class="btn active btn-outline-primary me-2 btn-lg align-self-center">Adventure time!</a>
+      </div>
 
+ {% endif %}
 {{ super() }}
 {% endblock %}
