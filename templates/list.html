@@ -6,7 +6,7 @@ Task list: {{ name }}
 
 {% block content %}
 <div class="container-fluid d-flex flex-row bg-light my-1">
-    <a class="btn btn-outline-primary me-1 active" href="#">User</a>
+    <a class="btn btn-outline-primary me-1 active" href="#">{{ current_user.user_name }}</a>
     <label class="btn btn-outline-light me-1 active" >{{ name }}</label>
 </div>
 

@@ -37,6 +37,7 @@ class User(UserMixin, db.Model):
     # has to be called as 'id' in order to accomplish login procedure
     id = db.Column(db.Integer, primary_key=True)
     u_date = db.Column(db.Date, default=date.today())
+
     user_name = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(20), nullable=False)
 
@@ -52,9 +53,16 @@ class List(db.Model):
     list_id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     l_date = db.Column(db.Date, default=date.today())
-    body = db.Column(db.Text(), nullable=False)
 
+    list_name = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.PickleType, nullable=False)
+
+    author = db.Column(db.String(250), nullable=False)
     author = relationship("User", back_populates="lists")
+
+    # I just want to return a string with custom printable representation of an object, overrides standard one
+    def __repr__(self):
+        return f'<Author-{self.author_id}, List-{self.list_id}: {self.body}>'
 
 
 @app.before_first_request
@@ -224,13 +232,17 @@ def add_task():
 @login_required
 def show_list(list_id=None):
     global draft
-    tdl, list_name = draft[0], draft[1]
-
+    list_name, tdl = draft[0], draft[1]
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'Confirm':
             # save to database
             print(list_id)
+            new_list = List(list_name=draft[0], author=current_user, body=draft[1])
+            print(new_list)
+            db.session.add(new_list)
+            db.session.commit()
+            print(db.session.query(List).all())
             flash("Your list has been saved to the database.", "info")
             return redirect(url_for('index'))
         elif action == 'Edit':
@@ -238,6 +250,7 @@ def show_list(list_id=None):
             return redirect(url_for('add_task'))
         elif action == 'Delete':
             print(list_id)
+
             flash("Your list has been deleted.", "info")
             # check database, delete if present
             return redirect(url_for('index'))
@@ -255,7 +268,9 @@ def show_list(list_id=None):
 @app.route("/all")
 @login_required
 def all():
-    user_lists = [['id1', 'listname1', [[1, 2], [2, 1], [3, 3]]], ['id2', 'listname2', [[1, 3], [2, 1], [3, 3]]]]
+    query = db.session.query(List).filter_by(author=current_user).all()
+    user_lists = [[lst.list_id, lst.list_name, lst.body] for lst in query]
+    # user_lists = [['id1', 'listname1', [[1, 2], [2, 1], [3, 3]]], ['id2', 'listname2', [[1, 3], [2, 1], [3, 3]]]]
     return render_template("all.html", lists=user_lists)
 
 
