@@ -34,12 +34,17 @@ class User(UserMixin, db.Model):
     # Usermixin contains some important methods for our User
     # base class to inherit when we create our db entities
     __tablename__ = "users"
-    user_id = db.Column(db.Integer, primary_key=True)
+    # has to be called as 'id' in order to accomplish login procedure
+    id = db.Column(db.Integer, primary_key=True)
     u_date = db.Column(db.Date, default=date.today())
-    name = db.Column(db.String(20), unique=True, nullable=False)
+    user_name = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(20), nullable=False)
 
     lists = relationship("List", back_populates="author")
+
+    # I just want to return a string with custom printable representation of an object, overrides standard one
+    def __repr__(self):
+        return f'<User_{self.id}: {self.user_name}>'
 
 
 class List(db.Model):
@@ -52,9 +57,9 @@ class List(db.Model):
     author = relationship("User", back_populates="lists")
 
 
-# @app.before_first_request
-# def before_first_request():
-#     db.create_all()
+@app.before_first_request
+def before_first_request():
+    db.create_all()
 
 # callback that returns User object by id
 @login_manager.user_loader
@@ -74,9 +79,9 @@ def login():
     # check if it's a valid POST request
     if form.validate_on_submit():
         r_user_name = request.form.get('username_f')
-        r_user_password = request.form.get('location_f')
+        r_user_password = request.form.get('password_f')
         try:
-            result = db.session.query(User).filter_by(username=r_user_name).first()
+            result = db.session.query(User).filter_by(user_name=r_user_name).first()
             if check_password_hash(result.password, r_user_password):
                 login_user(result)
                 flash('You were successfully logged in')
@@ -101,22 +106,21 @@ def logout():
 def register():
     form = LoginForm()
     if form.validate_on_submit():
-        name = request.form.get('name_f')
+        name = request.form.get('username_f')
         password = request.form.get('password_f')
-        check_presence = db.session.query(User).filter_by(username=name).first()
+        check_presence = db.session.query(User).filter_by(user_name=name).first()
         if check_presence:
-            flash('User with that email already exists')
+            flash('User with that username already exists')
             return redirect(url_for('register'))
         else:
             try:
-                new_user = User()
-                new_user.name = name
                 hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
-                new_user.password = hashed_password
+                new_user = User(user_name=name, password=hashed_password)
                 db.session.add(new_user)
                 db.session.commit()
                 login_user(new_user)
-                flash('You were successfully logged in')
+                flash(f'{new_user} You were successfully logged in')
+                print(db.session.query(User).all())
                 return redirect(url_for('index'))
             except:
                 flash("Couldn't add the user to the database")
@@ -130,14 +134,14 @@ def index():
     return render_template("index.html")
 
 
-draft = [[], None]
+draft = [None, []]
 
 @app.route("/add", methods=['GET', 'POST'])
 def add_task():
     global draft
-    tdl, list_name = draft
-    task_to_edit = None
-    rename_flag = None
+    list_name, tdl = draft
+    task_to_edit, rename_flag = None, None
+
     if request.method == 'POST':
         # this response allows us to catch list's name
         action_pre = request.form.get('action0')
@@ -184,7 +188,7 @@ def add_task():
         elif action == 'Save' and tdl:
             flash(f"List {list_name} has been saved.", "info")
             print(tdl, list_name)
-            draft = [tdl, list_name]
+            draft = [list_name, tdl]
             return redirect(url_for('show_list'))
 
         # edit task handler section
@@ -206,7 +210,7 @@ def add_task():
         else:
             flash("Nothing to save/delete yet.", "error")
         # update the draft with any changes before rendering it
-        draft = [tdl, list_name]
+        draft = [list_name, tdl]
         return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename_flag)
     else:
         return render_template("add.html", tdl=tdl, name=list_name)
@@ -217,6 +221,7 @@ def add_task():
 def show_list(list_id=None):
     global draft
     tdl, list_name = draft[0], draft[1]
+
     if request.method == 'POST':
         action = request.form.get('action')
         if action == 'Confirm':
@@ -240,11 +245,12 @@ def show_list(list_id=None):
             return redirect(url_for('add_task'))
 
 
-user_lists = [['id1', 'listname1', [[1, 2], [2, 1], [3, 3]]], ['id2', 'listname2', [[1, 3], [2, 1], [3, 3]]]]
+
 
 
 @app.route("/all")
 def all():
+    user_lists = [['id1', 'listname1', [[1, 2], [2, 1], [3, 3]]], ['id2', 'listname2', [[1, 3], [2, 1], [3, 3]]]]
     return render_template("all.html", lists=user_lists)
 
 
