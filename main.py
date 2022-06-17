@@ -24,16 +24,21 @@ login_manager.init_app(app)
 user_session_data = {}
 DD = [None, None, []]
 
-# for unknown reason, it doesn't work fine when I use DD
+# for some reason, it doesn't work fine when I use DD
 def draft_drop(except_list_id=False):
     """flushes session's draft, completely or with an exception of 0-th item(list_id)"""
-    global user_session_data
-    print(current_user)
-    if except_list_id:
-        user_session_data[current_user.id][1] = [None, None, []][1]
-        user_session_data[current_user.id][2] = [None, None, []][2]
-    else:
-        user_session_data[current_user.id] = [None, None, []]
+    # this condition here to prevent an error when there is no cookie or active session
+    #  but someone visits / route, which has this function inside
+    # this doesn't matter and has nothing to do with the DD-bug above
+    if current_user.is_authenticated:
+        global user_session_data
+        print(current_user)
+        if except_list_id:
+            user_session_data[current_user.id][1] = [None, None, []][1]
+            user_session_data[current_user.id][2] = [None, None, []][2]
+        else:
+            user_session_data[current_user.id] = [None, None, []]
+
 
 
 def draft_upd(new_draft):
@@ -267,6 +272,7 @@ def add_task():
         draft_upd([None, list_name, tdl])
         return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename_flag)
     else:
+        # BUG?
         draft_drop()
         return render_template("add.html", tdl=tdl, name=list_name)
 
