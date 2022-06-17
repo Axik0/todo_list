@@ -10,6 +10,7 @@ Task list: {{ name }}
     <label class="btn btn-outline-light me-1 active" >{{ name }}</label>
 </div>
 
+{% if tdl %}
 {% for item in tdl %}
 <div class="container-fluid bg-light my-0">
     <form class="d-flex flex-row" method="post" role="form" novalidate="">
@@ -27,5 +28,13 @@ Task list: {{ name }}
         <input name="action" class="delete_f btn btn-outline-danger me-1" type="submit" value="Delete">
       </form>
 </div>
+{% else %}
+      <div class="container-fluid d-flex justify-content-center">
+          <h1>Nothing here yet, create or choose a list.</h1>
+      </div>
+      <div class="container-fluid d-flex justify-content-center mt-3">
+          <a href="{{ url_for('add_task') }}" class="btn active col-1 btn-outline-primary me-2 btn-lg align-self-center">Start</a>
+      </div>
+{% endif %}
 {{ super() }}
 {% endblock %}

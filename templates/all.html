@@ -6,6 +6,14 @@ All user {{ current_user.user_name }} lists
 {% endblock %}
 
 {% block content %}
+{% if not lists %}
+      <div class="container-fluid d-flex justify-content-center">
+          <h1>Nothing here yet, create your first list.</h1>
+      </div>
+      <div class="container-fluid d-flex justify-content-center mt-3">
+          <a href="{{ url_for('add_task') }}" class="btn active col-1 btn-outline-primary me-2 btn-lg align-self-center">Start</a>
+      </div>
+{% endif %}
 {% for list in lists %}
 <ul class="dropdown-menu position-static d-grid gap-1 p-2 rounded-3 mx-0 my-2 shadow w-220px">
     <li><a class="dropdown-item rounded-2" href="lists/{{list[0]}}"> {{ list[1] }}</a></li>

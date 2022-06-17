@@ -14,8 +14,11 @@ a {
 .cpalette-2 {background-color: #00b4d8;}
 .cpalette-3 {background-color: #0077b6;}
 
+#submit_f {background-color : #02c39a; border-color : #02c39a; margin-top: 1em;}
 
-.submit_f {background-color : #06d6a0; }
+.submit_f {}
 .save_f {}
+.edit_f {color : #fb8500; border-color : #fb8500}
+.rename_f {color : #8338ec; border-color : #8338ec }
+.rename_f:hover {border-color : #8338ec; background-color : #8338ec; }
 .delete_f {}
-.edit_f {}
