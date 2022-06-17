@@ -28,6 +28,7 @@ DD = [None, None, []]
 def draft_drop(except_list_id=False):
     """flushes session's draft, completely or with an exception of 0-th item(list_id)"""
     global user_session_data
+    print(current_user)
     if except_list_id:
         user_session_data[current_user.id][1] = DD[1]
         user_session_data[current_user.id][2] = DD[2]
@@ -49,6 +50,8 @@ def draft_get():
     """retrieves the draft"""
     global user_session_data
     return user_session_data[current_user.id]
+
+
 
 ##Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cafes.db'
@@ -174,6 +177,7 @@ def register():
 def index():
     # if someone is logged in, I want to get rid of any unfinished/loaded draft for this user
     draft_drop()
+
     return render_template("index.html")
 
 
@@ -264,6 +268,10 @@ def add_task():
         draft_upd([None, list_name, tdl])
         return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename_flag)
     else:
+        # BUG?
+        print('bef', draft_get())
+        draft_drop()
+        print('goooy', draft_get())
         return render_template("add.html", tdl=tdl, name=list_name)
 
 
