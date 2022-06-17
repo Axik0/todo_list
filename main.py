@@ -21,6 +21,35 @@ Bootstrap(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+user_session_data = {}
+DD = [None, None, []]
+
+
+def draft_drop(except_list_id=False):
+    """flushes session's draft, completely or with an exception of 0-th item(list_id)"""
+    global user_session_data
+    if except_list_id:
+        user_session_data[current_user.id][1] = DD[1]
+        user_session_data[current_user.id][2] = DD[2]
+    else:
+        user_session_data[current_user.id] = DD
+
+
+def draft_upd(new_draft):
+    """updates session's draft, completely or with an exception of 0-th item(list_id)"""
+    global user_session_data
+    if new_draft[0]:
+        user_session_data[current_user.id] = new_draft
+    else:
+        user_session_data[current_user.id][1] = new_draft[1]
+        user_session_data[current_user.id][2] = new_draft[2]
+
+
+def draft_get():
+    """retrieves the draft"""
+    global user_session_data
+    return user_session_data[current_user.id]
+
 ##Connect to Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cafes.db'
 # this has to be turned off to prevent flask-sqlalchemy framework from tracking events and save resources
@@ -92,6 +121,8 @@ def login():
             result = db.session.query(User).filter_by(user_name=r_user_name).first()
             if check_password_hash(result.password, r_user_password):
                 login_user(result)
+                # create/clear draft for this particular user session
+                draft_drop()
                 flash('You were successfully logged in')
                 return redirect(url_for('index'))
             else:
@@ -128,8 +159,9 @@ def register():
                 db.session.add(new_user)
                 db.session.commit()
                 login_user(new_user)
+                # create/clear draft for this particular user session
+                draft_drop()
                 flash(f'{new_user} You were successfully logged in')
-                print(db.session.query(User).all())
                 return redirect(url_for('index'))
             except:
                 flash("Couldn't add the user to the database")
@@ -140,24 +172,16 @@ def register():
 
 @app.route("/")
 def index():
-    global draft
-    draft = [None, None, []]
+    # if someone is logged in, I want to get rid of any unfinished/loaded draft for this user
+    draft_drop()
     return render_template("index.html")
-
-
-
-draft = [None, None, []]
-
-
-def draft_drop():
-    global draft
-    draft = [None, None, []]
 
 
 @app.route("/add", methods=['GET', 'POST'])
 @login_required
 def add_task():
-    global draft
+    draft = draft_get()
+    print(draft)
     list_name, tdl = draft[1], draft[2]
     task_to_edit, rename_flag = None, None
 
@@ -199,13 +223,23 @@ def add_task():
 
         # delete draft
         elif action == 'Delete' and tdl:
-            list_name, tdl = None, []
+            # check if the draft has already been submitted to db
+            if draft_get()[0]:
+                try:
+                    db.session.query(List).filter_by(list_id=draft[0]).delete()
+                    db.session.commit()
+                    flash("Your list has been deleted from the database.", "info")
+                    draft_drop()
+                except:
+                    flash("Couldn't find or delete this list, something's wrong.", "error")
+            # flush the draft for both scenarios
+            draft_drop()
             flash("List has been deleted.", "info")
-            return redirect(url_for('add_task'))
+            return redirect(url_for('get_all'))
         # show draft again before saving to the database
         elif action == 'Save' and tdl:
             flash(f"List {list_name} has been saved.", "info")
-            draft[1], draft[2] = list_name, tdl
+            draft_upd([None, list_name, tdl])
             return redirect(url_for('show_list'))
 
         # edit task handler section
@@ -227,7 +261,7 @@ def add_task():
         else:
             flash("Nothing to save/delete yet.", "error")
         # update the draft with any changes before rendering it
-        draft[1], draft[2] = list_name, tdl
+        draft_upd([None, list_name, tdl])
         return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename_flag)
     else:
         return render_template("add.html", tdl=tdl, name=list_name)
@@ -237,7 +271,7 @@ def add_task():
 @app.route("/lists/<int:list_id>", methods=['GET', 'POST'])
 @login_required
 def show_list(list_id=None):
-    global draft
+    draft = draft_get()
     # print(list_id)
     if request.method == 'POST':
         action = request.form.get('action')
@@ -256,7 +290,7 @@ def show_list(list_id=None):
                     new_list = List(list_name=draft[1], author=current_user, body=draft[2])
                     db.session.add(new_list)
                     db.session.commit()
-                    draft = [None, None, []]
+                    draft_drop()
                     flash("Your list has been saved to the database.", "info")
                 except:
                     flash("List with this name already exists in the database, please rename.", "error")
@@ -271,12 +305,12 @@ def show_list(list_id=None):
                     db.session.query(List).filter_by(list_id=draft[0]).delete()
                     db.session.commit()
                     flash("Your list has been deleted from the database.", "info")
-                    draft = [None, None, []]
+                    draft_drop()
                 except:
                     flash("Couldn't find or delete this list, something's wrong.", "error")
             else:
                 # just flush the draft
-                draft = [None, None, []]
+                draft_drop()
                 flash("Your draft has been deleted.", "info")
             return redirect(url_for('get_all'))
     else:
@@ -286,7 +320,7 @@ def show_list(list_id=None):
         elif list_id:
             # when we open a list from database with an exact id
             query = db.session.query(List).filter_by(author=current_user, list_id=list_id).first()
-            draft = [query.list_id, query.list_name, query.body]
+            draft_upd([query.list_id, query.list_name, query.body])
             return redirect(url_for('show_list'))
         else:
             flash("Nothing here yet, first create a list. ", "error")
@@ -297,8 +331,9 @@ def show_list(list_id=None):
 @app.route("/all")
 @login_required
 def get_all():
-    global draft
-    draft = [None, None, []]
+    # I want to get rid of any unfinished/loaded draft for this user
+    draft_drop()
+
     query = db.session.query(List).filter_by(author=current_user).all()
     user_lists = [[lst.list_id, lst.list_name, lst.body] for lst in query]
     # user_lists = [['id1', 'listname1', [[1, 2], [2, 1], [3, 3]]], ['id2', 'listname2', [[1, 3], [2, 1], [3, 3]]]]
