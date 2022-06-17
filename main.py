@@ -32,7 +32,6 @@ def draft_drop(except_list_id=False):
     # this doesn't matter and has nothing to do with the DD-bug above
     if current_user.is_authenticated:
         global user_session_data
-        print(current_user)
         if except_list_id:
             user_session_data[current_user.id][1] = [None, None, []][1]
             user_session_data[current_user.id][2] = [None, None, []][2]
@@ -50,10 +49,10 @@ def draft_upd(new_draft):
         user_session_data[current_user.id][1] = new_draft[1]
         user_session_data[current_user.id][2] = new_draft[2]
 
-
 def draft_get():
     """retrieves the draft"""
     global user_session_data
+    # print(current_user, user_session_data)
     return user_session_data[current_user.id]
 
 
@@ -190,6 +189,7 @@ def index():
 @login_required
 def add_task():
     draft = draft_get()
+    print(draft,'te')
     list_name, tdl = draft[1], draft[2]
     task_to_edit, rename_flag = None, None
 
@@ -273,7 +273,7 @@ def add_task():
         return render_template("add.html", tdl=tdl, name=list_name, task=task_to_edit, rename=rename_flag)
     else:
         # BUG?
-        draft_drop()
+        # draft_drop()
         return render_template("add.html", tdl=tdl, name=list_name)
 
 
