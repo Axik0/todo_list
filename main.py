@@ -189,7 +189,6 @@ def index():
 @login_required
 def add_task():
     draft = draft_get()
-    print(draft,'te')
     list_name, tdl = draft[1], draft[2]
     task_to_edit, rename_flag = None, None
 
